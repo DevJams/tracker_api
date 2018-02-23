@@ -35,5 +35,10 @@ module TrackerApi
         epic
       end
     end
+
+    def delete_epic(epic, params={})
+      raise ArgumentError, 'Valid epic required to update.' unless epic.instance_of?(Resources::Epic)
+      client.delete("/projects/#{epic.project_id}/epics/#{epic.id}").body
+    end
   end
 end

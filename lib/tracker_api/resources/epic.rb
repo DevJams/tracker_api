@@ -6,7 +6,7 @@ module TrackerApi
       attribute :client
 
       attribute :comment_ids, [Integer]
-      attribute :comments, [Comment]
+      attribute :comments, [Comment], :default => []
       attribute :created_at, DateTime
       attribute :description, String
       attribute :follower_ids, [Integer]
@@ -42,6 +42,12 @@ module TrackerApi
         comment = Endpoints::Comment.new(client).create(project_id, id, params)
         comment.create_attachments(files: files) if files.present?
         comment
+      end
+
+      # Delete an existing Epic.
+      def delete
+        raise ArgumentError, 'Can not update a story with an unknown project_id.' if project_id.nil?
+        Endpoints::Epic.new(client).delete_epic(self)
       end
     end
   end
