@@ -8,6 +8,7 @@ module TrackerApi
       attribute :accepted_at, DateTime
       attribute :after_id, Integer
       attribute :before_id, Integer
+      attribute :blockers, [Blocker]
       attribute :comment_ids, [Integer]
       attribute :comments, [Comment]
       attribute :created_at, DateTime
@@ -31,6 +32,7 @@ module TrackerApi
       attribute :project_id, Integer
       attribute :requested_by, Person
       attribute :requested_by_id, Integer
+      attribute :reviews, [Review]
       attribute :story_type, String # (feature, bug, chore, release)
       attribute :task_ids, [Integer]
       attribute :tasks, [Task]
@@ -54,6 +56,7 @@ module TrackerApi
         property :deadline
         property :requested_by_id
         property :owner_ids, if: ->(_) { !owner_ids.blank? }
+        property :project_id
 
         # Use render_empty: false to address: https://github.com/dashofcode/tracker_api/issues/110
         # - The default value of the labels attribute in Resources::Story is an empty array.
@@ -117,6 +120,10 @@ module TrackerApi
         Endpoints::Activity.new(client).get_story(project_id, id, params)
       end
 
+      def blockers(params = {})
+        Endpoints::Blockers.new(client).get(project_id, id, params)
+      end
+
       # Provides a list of all the comments on the story.
       #
       # @param [Hash] params
@@ -165,6 +172,17 @@ module TrackerApi
         end
       end
 
+      # Returns the story's original ("undirtied") project_id
+      #
+      # @return Integer
+      def project_id
+        if dirty_attributes.key?(:project_id)
+          original_attributes[:project_id]
+        else
+          @project_id
+        end
+      end
+
       # @param [Hash] params attributes to create the task with
       # @return [Task] newly created Task
       def create_task(params)
@@ -192,6 +210,14 @@ module TrackerApi
       def delete
         raise ArgumentError, 'Can not update a story with an unknown project_id.' if project_id.nil?
         Endpoints::Story.new(client).delete(self, UpdateRepresenter.new(self))
+      end
+
+      def reviews(params = {})
+        if params.blank? && @reviews.present?
+          @reviews
+        else
+          @reviews = Endpoints::Reviews.new(client).get(project_id, id, params)
+        end
       end
     end
   end

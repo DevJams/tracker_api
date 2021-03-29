@@ -6,7 +6,10 @@ Coveralls.wear!
 
 require 'minitest/byebug' if ENV['DEBUG']
 require 'minitest/autorun'
-require 'mocha/mini_test'
+
+require 'mocha'
+require('mocha/minitest')
+
 require 'awesome_print'
 require 'multi_json'
 require 'vcr'
@@ -20,7 +23,7 @@ VCR.configure do |c|
   c.ignore_localhost         = true
   c.cassette_library_dir     = File.expand_path('../vcr/cassettes', __FILE__).to_s
   c.default_cassette_options = { serialize_with: :json }
-  c.hook_into :excon
+  c.hook_into :faraday
   c.allow_http_connections_when_no_cassette = false
 end
 

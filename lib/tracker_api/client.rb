@@ -25,7 +25,7 @@ module TrackerApi
       @url               = Addressable::URI.parse(url).to_s
       @api_version       = options.fetch(:api_version, '/services/v5')
       @logger            = options.fetch(:logger, ::Logger.new(nil))
-      adapter            = options.fetch(:adapter, :excon)
+      adapter            = options.fetch(:adapter) { defined?(JRUBY_VERSION) ? :net_http : :excon }
       connection_options = options.fetch(:connection_options, { ssl: { verify: true } })
       @auto_paginate     = options.fetch(:auto_paginate, true)
       @token             = options[:token]
@@ -223,7 +223,7 @@ module TrackerApi
         req.body = body
       end
       response
-    rescue Faraday::Error::ClientError => e
+    rescue Faraday::ClientError, Faraday::ServerError => e
       status_code = e.response[:status]
       case status_code
       when 400..499 then raise TrackerApi::Errors::ClientError.new(e)
